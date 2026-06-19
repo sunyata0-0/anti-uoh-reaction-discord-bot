@@ -8,7 +8,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-ROLE_MESSAGE_ID = 1516025346800222313
+ROLE_MESSAGE_ID = 1516025346800222313 #the role message id xd
 
 ROLE_MAP = {
     "♀️": "body type 2",
@@ -24,9 +24,8 @@ ROLE_MAP = {
 
 ALLOWED_ROLE_EMOJIS = set(ROLE_MAP.keys())
 
-# 🚫 blocked emojis anywhere
 BLOCKED_UNICODE = {"😭", "😢"}
-BLOCKED_CUSTOM = {"bos"} 
+BLOCKED_CUSTOM = {"bos", "pinksob", "clownsob", "aliensob"}
 SOBBER_ROLE_NAME = "sobber"
 
 @bot.event
@@ -87,4 +86,4 @@ async def on_raw_reaction_remove(payload):
         await member.remove_roles(role)
 
 
-bot.run("da bot token u get from the dev portal website")
+bot.run("da bot token u get from the discord dev portal website")
