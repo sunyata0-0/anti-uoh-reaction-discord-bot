@@ -1,10 +1,12 @@
 import discord
 from discord.ext import commands
+import aiohttp
 
 intents = discord.Intents.default()
 intents.reactions = True
 intents.guilds = True
 intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -85,5 +87,18 @@ async def on_raw_reaction_remove(payload):
     if role:
         await member.remove_roles(role)
 
+
+@bot.command()
+async def bnuy(ctx):
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://api.bunnies.io/v2/loop/random/?media=gif,png") as resp:
+            data = await resp.json()
+
+            url = data["media"]["gif"]  # or "poster" for a static image
+
+            embed = discord.Embed(title="buni >w< 🐰")
+            embed.set_image(url=url)
+
+            await ctx.send(embed=embed)
 
 bot.run("da bot token u get from the discord dev portal website")
