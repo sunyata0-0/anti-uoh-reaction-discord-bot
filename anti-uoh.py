@@ -118,13 +118,13 @@ async def bnuy(ctx):
 async def wordle_reminder():
     now = datetime.now()
 
-    if now.hour == 0 and now.minute == 0:
+    if now.hour == 0 and now.minute == 0 and now.second == 0:
         channel = bot.get_channel(WORDLE_CHANNEL_ID)
         role = channel.guild.get_role(WORDLE_ROLE_ID)
 
         await channel.send(f"{role.mention} Daily Wordle time! 🟩")
     
-    elif now.hour == 23 and now.minute >=50:
+    elif now.hour == 23 and now.minute >=50 and now.second == 0:
         channel = bot.get_channel(WORDLE_CHANNEL_ID)
         minutes_left = 60 - now.minute
         
@@ -208,5 +208,48 @@ async def on_message(message):
 
 
     await bot.process_commands(message)
+
+@bot.command(aliases=["h"])
+async def help(ctx):
+
+    embed = discord.Embed(
+        title="Buni Bot Help 🐰",
+        description="Commands you can use:",
+        color=discord.Color.pink()
+    )
+
+    embed.add_field(
+        name="`!bnuy`",
+        value="Sends a random bunny gif 🐰",
+        inline=False
+    )
+
+    embed.add_field(
+        name="`!wordle`",
+        value="Shows time remaining until the next Wordle 🟩",
+        inline=False
+    )
+
+    embed.add_field(
+        name="`!! + query` or `oi + query`",
+        value="Searches GIPHY for a random gif.\nExample: `!!anime` or `oininjago`",
+        inline=False
+    )
+
+    embed.add_field(
+        name="`?? + query` or `oo + query`",
+        value="Searches KLIPY for a random gif.\nExample: `??quaso` or `oobnuy`",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="also",
+        value="also removes the :sob: from message reactions unless u ask nicely for the role:3",
+        inline=False
+    )
+    
+    embed.set_footer(text="yeah")
+
+    await ctx.send(embed=embed)
  
 bot.run("da bot token u get from the discord dev portal website")
