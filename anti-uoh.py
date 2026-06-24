@@ -19,6 +19,7 @@ WORDLE_ROLE_ID = 1516035868920512653
 WORDLE_CHANNEL_ID = 1495729186537734155
 
 GIPHY_API_KEY = "the giphy api key xd, since tenor doesnt allow it anymore"
+KLIPY_API_KEY = "klipy's api key, both of these have a limit of 100 gifs per hour"
 
 
 ROLE_MAP = {
@@ -179,7 +180,32 @@ async def on_message(message):
                         gif["images"]["original"]["url"]
                     )
                 else:
-                    await message.channel.send("No gif found :c")
+                    await message.channel.send("no gif hehe https://tenor.com/view/raiden-shogun-middle-finger-raiden-ei-genshin-impact-hoyoverse-gif-1704467523727458703")
+
+    elif message.content.startswith("??") or message.content.startswith("oo"):
+        query = message.content[2:].strip()
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://api.klipy.com/v2/search",
+                params={
+                    "q": query,
+                    "key": KLIPY_API_KEY,
+                    "limit": 10
+                }
+            ) as resp:
+
+                data = await resp.json()
+
+                if data.get("results"):
+                    gif = random.choice(data["results"])
+
+                    gif_url = gif["media_formats"]["gif"]["url"]
+
+                    await message.channel.send(gif_url)
+                else:
+                    await message.channel.send("gif not found https://tenor.com/view/raiden-shogun-middle-finger-raiden-ei-genshin-impact-hoyoverse-gif-1704467523727458703")
+
 
     await bot.process_commands(message)
  
