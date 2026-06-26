@@ -1,5 +1,8 @@
 import aiohttp
 import random
+import threading
+import asyncio
+from flask import Flask, request
 from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
@@ -11,16 +14,24 @@ intents.guilds = True
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
-# u get these from discord:
 ROLE_MESSAGE_ID = 1516025346800222313
 WORDLE_ROLE_ID = 1516035868920512653
 WORDLE_CHANNEL_ID = 1495729186537734155
 
+CHANNELS = {
+    "quanuy":1340058523509198901,
+    "cult":1495728410515734720,
+    "wordle":1495729186537734155,
+    "testing":1518996249322324049,
+    "aimran":1440053973058064461
+}
+
 GIPHY_API_KEY = "the giphy api key xd, since tenor doesnt allow it anymore"
 KLIPY_API_KEY = "klipy's api key, both of these have a limit of 100 gifs per hour"
 
+WEB_HISTORY = []
 
 ROLE_MAP = {
     "♀️": "body type 2",
@@ -156,8 +167,6 @@ async def wordle(ctx):
 # random gif
 @bot.event
 async def on_message(message):
-    if message.author.bot:
-        return
 
     if message.content.startswith("oi") or message.content.startswith("!!"):
         query = message.content[2:].strip()
@@ -206,14 +215,16 @@ async def on_message(message):
                 else:
                     await message.channel.send("gif not found https://tenor.com/view/raiden-shogun-middle-finger-raiden-ei-genshin-impact-hoyoverse-gif-1704467523727458703")
 
-
+    
     await bot.process_commands(message)
 
+
+# help
 @bot.command(aliases=["h"])
 async def help(ctx):
 
     embed = discord.Embed(
-        title="Buni Bot Help 🐰",
+        title="Spaghetti Bot Help 🐰",
         description="Commands you can use:",
         color=discord.Color.pink()
     )
@@ -251,5 +262,154 @@ async def help(ctx):
     embed.set_footer(text="yeah")
 
     await ctx.send(embed=embed)
- 
+
+# messager
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return '''
+    <style>
+        body {
+            background: #2b2d31;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            background: #313338;
+            width: 700px;
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        #history {
+            background: #1e1f22;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 70px;
+            border-radius: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+            width: 100%;
+            height: 40px;
+        }
+    </style>
+
+    <div class="box">
+        <h1>Spaghetti Messenger 🐰</h1>
+
+        <select id="channel">
+        <option value="quanuy">quanuy</option>
+        <option value="cult">cult</option>
+        <option value="wordle">wordle</option>
+        <option value="testing">testing</option>
+        <option value="aimran">aimran</option>
+        </select>
+
+        <br><br>
+        
+        <div id="history"></div>
+
+        <textarea id="msg"></textarea>
+
+        <button onclick="send()">Send</button>
+    </div>
+
+    <script>
+        async function send() {
+            let text = document.getElementById("msg").value;
+            let channel = document.getElementById("channel").value;
+            
+            if(text.trim() === "") return;
+            
+            await fetch("/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type":"application/json"
+                },
+                body: JSON.stringify({
+                    message:text,
+                    channel:channel
+                })
+            });
+
+            document.getElementById("msg").value = "";
+            
+            loadHistory();
+        }
+        
+        async function loadHistory(){
+
+        let response =
+            await fetch("/history");
+
+        let data = await response.json();
+
+        let history =
+            document.getElementById("history");
+
+        history.innerHTML = "";
+
+        data.messages.forEach(msg => {
+            history.innerHTML += msg + "<br>";
+        });
+
+        history.scrollTop = history.scrollHeight;
+        }
+
+        setInterval(loadHistory, 1000);
+
+        document.getElementById("msg")
+            .addEventListener("keydown", e => {
+                if(e.key==="Enter" && !e.shiftKey){
+                    e.preventDefault();
+                    send();
+                }
+            });
+    </script>
+    '''
+
+@app.route("/send", methods=["POST"])
+def send_message():
+    data = request.json
+    text = data["message"]
+    channel_name = data["channel"]
+    channel = bot.get_channel(CHANNELS[channel_name])
+    
+    if channel is None:
+        return {"status": "error"}
+    
+    WEB_HISTORY.append(f"-> [{channel_name}] {text}")
+    
+    asyncio.run_coroutine_threadsafe(
+        channel.send(text),
+        bot.loop
+    )
+    
+    return {"status": "ok"}
+
+@app.route("/history")
+def history():
+    return{"messages": WEB_HISTORY}
+
+def run_flask():
+    app.run(host="127.0.0.1", port=5000)
+
+threading.Thread(target=run_flask, daemon=True).start()
+
+
 bot.run("da bot token u get from the discord dev portal website")
